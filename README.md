@@ -1,7 +1,7 @@
 Coastal changes south of Vatnajokull, Iceland
 ================
 
-This repository is meant to host the time series analysis of coastal
+This repository is meant to host the spatio-temporal analysis of coastal
 changes due to glacier and volcanic activity in the areas south of the
 Vatnajokull ice cap. 
 
