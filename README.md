@@ -11,4 +11,4 @@ vector data.
 
 The analysis leverages the Earth Engine computing
 capabilities and data catalog through the `rgee` package. Hence, the
-main analysis is performed in R language.
+main analysis is performed in R programming language.

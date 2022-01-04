@@ -24,8 +24,10 @@ sea_ext = function(image){
   ## Water extraction is performed through spectral index thresholding, 
   ## with a combination of the following:
   water = image$select('SWIR_NIR')$lt(0.65)$ # glacier & lakes & rivers & shadows
+      # And(image$select('BRIGHT')$gt(0.07))$ # remove dark pixels (mainly on outwash plains)
+      # And(image$select('BRIGHT')$lt(0.7))$ #remove bright pixels (clouds and glacier/snow)
       And(image$select('ILI')$gt(1.2))$
-      And(image$select('NDVI')$lte(0))
+      And(image$select('NDVI')$lte(0)) # dark or high moisture vegetation
   
   ## This code is meant to extract only the sea water, 
   ## however, terrain data does not give promising results yet.
@@ -37,7 +39,7 @@ sea_ext = function(image){
     mask(water)$
     #updateMask(sea)$
     select('MNDWI')
-  im$gt(0.7)$copyProperties(image)
+  im$gt(0)$copyProperties(image)
 }
 
 ## The function is mapped in the annual Landsat collection and clipped to the "sea" AOI
@@ -67,8 +69,8 @@ epochsMeanIC = epochsMean %>%
   ee$ImageCollection$fromImages()
 
 ## Compute changes between epochs
-changeEp1Ep7 = epochsMean[[1]]$mask(epochsMean[[1]]$gt(0))$
-  subtract(epochsMean[[7]]$mask(epochsMean[[7]]$gt(0)))
+changeEp1Ep7 = epochsMean[[1]]$gt(0)$
+  subtract(epochsMean[[7]]$gt(0))
 
 ## Mapview
 years_col = sea$aggregate_array('year')$getInfo()
@@ -76,28 +78,26 @@ years_col = sea$aggregate_array('year')$getInfo()
 intervals <- paste0(
   "<RasterSymbolizer>",
   '<ColorMap  type="ramp" extended="false" >',
-  '<ColorMapEntry color="#32cd32" quantity="-0.5" label="New water occurrence"/>', #green
-  '<ColorMapEntry color="#FFFFFF" quantity="0" label="No change" />', #white
-  '<ColorMapEntry color="#8B008B" quantity="0.5" label="New land occurrence" />', #purple
+  '<ColorMapEntry color="#32cd32" quantity="-1" label="New water occurrence"/>', #green
+  '<ColorMapEntry color="#FFFFFF" opacity="0.0" quantity="0" label="No change" />', #transparent
+  '<ColorMapEntry color="#8B008B" quantity="1" label="New land occurrence" />', #purple
   "</ColorMap>",
   "</RasterSymbolizer>"
 )
 
 Map$centerObject(aoi_sea)
 Map$addLayer(
-    seaOccurrence$mask(seaOccurrence$gt(3)), 
-    list(bands = 'MNDWI_sum', min = 4, max = 33, palette = c('#FFFFFF', '#FFB6C1', '#8B008B')), 
+    seaOccurrence$mask(seaOccurrence$gt(3)),
+    list(bands = 'MNDWI_sum', min = 4, max = 33, palette = c('#FFFFFF', '#FFB6C1', '#8B008B')),
     legend = T, name = 'Sea Occurrence', shown = F
   ) +
   Map$addLayer(
-    changeEp1Ep7$sldStyle(intervals), 
+    changeEp1Ep7$sldStyle(intervals),
     legend = F, name = 'Change between 1985-1990 and 2015-2020', shown = F
-  ) 
+  )
 
 Map$addLayers(
-  epochsMeanIC$map(function(img) img$updateMask(img$gt(0.3))), 
-  list(palette = c('#FFFFFF','#40E0D0'), min = 0.3), 
+  epochsMeanIC$map(function(img) img$updateMask(img$gt(0.3))),
+  list(palette = c('#FFFFFF','#40E0D0'), min = 0.3),
   name = names(epochs), shown = F, legend = T
 )
-
-Map$addLayers(annual_lc, name = as.character(years_col), visParams = rgbVis, shown = F, legend = T)
