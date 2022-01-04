@@ -5,7 +5,7 @@ This repository is meant to host the spatio-temporal analysis of coastal
 changes due to glacier and volcanic activity in the areas south of the
 Vatnajokull ice cap. 
 
-The analysis folder holds the code, while the data
+The analysis folder holds the code and some [notes](analysis/Notes.md) while the data
 folder contains spatial data used in the analysis, mainly ancillary
 vector data. 
 
